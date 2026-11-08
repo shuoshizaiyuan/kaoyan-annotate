@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022 英语一 Part B · 可交互批注卷（划线 + 批注 + 云同步）</title>
+<style>
+  :root{
+    --ink:#1c1c1e; --paper:#fffdf8; --edge:#e8e2d4;
+    --red:#c0392b; --red-bg:#fdecea;
+    --blue:#1d4ed8; --blue-bg:#eaf3fc;
+    --green:#1e7f4f; --green-bg:#e9f7ef;
+    --yellow:#fff3a8; --yellow-edge:#e6d24a;
+    --gray:#6b6b6b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#f2efe9; font-family:"Microsoft YaHei","PingFang SC",sans-serif; color:var(--ink); padding:0 12px 90px;}
+
+  /* ===== 顶部工具条（吸顶） ===== */
+  .bar{position:sticky; top:0; z-index:100; background:#ffffffee; backdrop-filter:blur(6px); border-bottom:1px solid var(--edge); padding:10px 0;}
+  .bar-in{max-width:980px; margin:0 auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:0 4px;}
+  .bar b{font-size:15px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; padding:3px 10px; border-radius:20px; border:1px solid var(--edge); background:#fff;}
+  .chip .sw{width:13px; height:13px; border-radius:3px; display:inline-block;}
+  .stat{font-size:12.5px; color:var(--gray); margin-left:auto;}
+  .btn{padding:7px 14px; border-radius:8px; border:1px solid var(--blue); background:#fff; color:var(--blue); font-size:13.5px; font-weight:600; cursor:pointer;}
+  .btn.solid{background:var(--blue); color:#fff;}
+  .btn.danger{border-color:var(--red); color:var(--red);}
+  .btn:active{transform:scale(.97);}
+
+  /* ===== 同步面板 ===== */
+  .syncpanel{max-width:980px; margin:12px auto 0; background:#fff; border:1px solid var(--edge); border-radius:12px; padding:16px 20px; font-size:13.5px; line-height:1.8; display:none;}
+  .syncpanel.show{display:block;}
+  .syncpanel h3{font-size:14.5px; margin-bottom:8px; color:var(--blue);}
+  .syncpanel .row{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
+  .syncpanel input[type=text]{flex:1; min-width:230px; padding:9px 12px; border:1px solid #dbe1ec; border-radius:9px; font-size:13.5px; font-family:Consolas,monospace;}
+  #syncSt{margin-top:6px; font-weight:600; color:var(--blue);}
+  .syncpanel .tip{color:var(--gray); font-size:12.5px; margin-top:8px;}
+
+  /* ===== 卷面 ===== */
+  .wrap{max-width:980px; margin:18px auto 0;}
+  .paper{background:var(--paper); border:1px solid var(--edge); border-radius:6px; box-shadow:0 3px 14px rgba(0,0,0,.08); padding:38px 46px;}
+  @media (max-width:640px){ .paper{padding:22px 16px;} }
+  .paper-head{text-align:center; border-bottom:2.5px double #9a938a; padding-bottom:14px; margin-bottom:22px;}
+  .paper-head h2{font-size:18px; letter-spacing:1px;}
+  .paper-head p{font-size:13px; color:var(--gray); margin-top:4px;}
+  .directions{font-size:13.5px; line-height:1.9; background:#f6f3ea; border-left:4px solid #b9b1a0; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:10px;}
+  .directions .zh{color:var(--gray); font-size:12.5px; display:block; margin-top:6px;}
+  .lead-in{font-size:14px; margin:16px 0 6px; font-weight:bold;}
+
+  .en{font-family:Georgia,"Times New Roman",serif; font-size:15px; line-height:2.0;}
+  .q{margin:28px 0 34px;}
+  .q-head{display:flex; align-items:center; border-bottom:1px dashed #c9c2b4; padding-bottom:4px; margin-bottom:10px;}
+  .q-title{font-family:Georgia,serif; font-size:15.5px; font-weight:bold;}
+  .q-title .no{color:var(--blue);}
+  .notebtn{margin-left:auto; font-size:12.5px; padding:3px 11px; border-radius:16px; border:1px solid var(--blue); color:var(--blue); background:#fff; cursor:pointer;}
+  .notebtn.has{background:var(--blue-bg); font-weight:700;}
+  .notebtn.has::after{content:" ●"; color:var(--red); font-size:10px;}
+  .para{margin:10px 0; text-indent:2em;}
+
+  /* 句子：可点击划线 */
+  .sent{cursor:pointer; border-radius:3px; padding:0 1px; transition:background .12s;}
+  .sent:hover{outline:1.5px dashed #b9b1a0;}
+  .hl1{background:var(--yellow); border-bottom:2px solid var(--yellow-edge);}
+  .hl2{background:#c9f2d9; border-bottom:2px solid #4fbf82;}
+  .hl3{background:#ffd9d2; border-bottom:2px solid #e77a68;}
+
+  /* 选项 */
+  .options{margin-top:34px; border-top:2.5px double #9a938a; padding-top:18px;}
+  .options h3{font-size:15px; margin-bottom:12px;}
+  .opt{display:flex; gap:10px; margin:8px 0; align-items:flex-start;}
+  .opt .lab{font-family:Georgia,serif; font-weight:bold; min-width:26px; font-size:14.5px;}
+  .opt .tx{font-size:14.5px; flex:1;}
+  .opt .notebtn{margin-left:4px; flex:none;}
+  .opt.distract-tag{font-size:11px; color:var(--gray);}
+
+  /* 批注框 */
+  .notebox{display:none; margin:10px 0 0;}
+  .notebox.show{display:block;}
+  .notebox textarea{width:100%; min-height:74px; padding:10px 12px; border:1.5px solid #b9b1a0; border-radius:9px; font-size:13.5px; font-family:"Microsoft YaHei",sans-serif; line-height:1.7; background:#fffdf6; resize:vertical;}
+  .notebox textarea:focus{outline:none; border-color:var(--blue);}
+  .notebox .hint{font-size:11.5px; color:var(--gray); margin-top:3px;}
+
+  .ansline{margin-top:18px; padding:10px 14px; background:#f6f3ea; border-radius:8px; font-size:13.5px; color:var(--gray);}
+  details.anskey{margin-top:20px;}
+  details.anskey summary{cursor:pointer; font-weight:bold; color:var(--blue); font-size:14px;}
+  details.anskey .box{margin-top:10px; padding:12px 16px; border:1.5px solid var(--green); border-radius:8px; background:var(--green-bg); color:var(--green); font-weight:bold; font-size:15px;}
+
+  /* 危险操作弹窗 */
+  .dlgmask{position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:99999; display:none; align-items:center; justify-content:center; padding:16px;}
+  .dlgmask.show{display:flex;}
+  .dlg{background:#fff; border-radius:16px; padding:22px 24px; max-width:460px; width:100%; box-shadow:0 16px 48px rgba(15,23,42,.3);}
+  .dlg h4{font-size:17px; margin-bottom:10px;}
+  .dlg p{font-size:14px; line-height:1.9; color:#475569;}
+  .dlg .warn{font-size:13.5px; color:#92400e; background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:10px 12px; margin:12px 0 14px;}
+  .dlg .ops{display:flex; gap:10px; justify-content:flex-end;}
+  .dlg label{display:flex; gap:9px; font-size:14px; color:#374151; margin-bottom:18px; cursor:pointer; line-height:1.6;}
+
+  #toast{position:fixed; left:50%; bottom:34px; transform:translateX(-50%); background:#0f172a; color:#fff; font-size:13.5px; padding:10px 20px; border-radius:22px; opacity:0; pointer-events:none; transition:.25s; z-index:100000;}
+  #toast.show{opacity:.94;}
+
+  footer{text-align:center; color:#94a3b8; font-size:12.5px; margin-top:34px; line-height:1.9;}
+</style>
+</head>
+<body>
+
+<!-- ===== 工具条 ===== -->
+<div class="bar">
+  <div class="bar-in">
+    <b>📑 2022 英语一 Part B · 批注卷</b>
+    <span class="chip"><span class="sw" style="background:var(--yellow);border:1px solid var(--yellow-edge)"></span>该读句·主题句</span>
+    <span class="chip"><span class="sw" style="background:#c9f2d9;border:1px solid #4fbf82"></span>对应词·同义替换</span>
+    <span class="chip"><span class="sw" style="background:#ffd9d2;border:1px solid #e77a68"></span>陷阱·存疑</span>
+    <span class="stat" id="stat">已划 0 处 · 批注 0 条</span>
+    <button class="btn" onclick="toggleSync()">☁ 同步</button>
+    <button class="btn danger" onclick="askClear()">清空</button>
+  </div>
+</div>
+
+<!-- ===== 同步面板 ===== -->
+<div class="syncpanel" id="syncPanel">
+  <h3>☁ GitHub 云同步</h3>
+  <div>粘贴一次同步秘钥（GitHub 密钥，<code>github_pat_</code> 开头，需对本仓库有 Contents 读写权限），之后<b>每次划线 / 批注约 4 秒后自动上传</b>；换设备粘贴同一秘钥点「拉取云端」即可接续。不设置则纯本地保存（本设备浏览器）。</div>
+  <div class="row">
+    <input type="text" id="syncTok" placeholder="粘贴 github_pat_ 开头的同步秘钥">
+    <button class="btn solid" onclick="saveSync()">保存秘钥</button>
+    <button class="btn" onclick="manualUpload()">手动上传</button>
+    <button class="btn" onclick="manualDownload()">拉取云端</button>
+    <button class="btn" onclick="clearSync()">清除</button>
+  </div>
+  <div id="syncSt"></div>
+  <div class="tip">数据文件：<code>progress.json</code>（仓库 kaoyan-annotate）。秘钥只保存在本机浏览器，不会上传到任何第三方。</div>
+</div>
+
+<!-- ===== 卷面 ===== -->
+<div class="wrap">
+<div class="paper">
+  <div class="paper-head">
+    <h2>Section Ⅱ Reading Comprehension · Part B（10 points）</h2>
+    <p>2022 年全国硕士研究生招生考试 英语（一）真题 · 可交互批注版</p>
+  </div>
+
+  <div class="directions">
+    <b>Directions:</b><br>
+    In the following text, there are five people's opinions about Emma Marris's article "The Case Against Zoos". For Questions 41–45, choose the best statement from the list A–G to summarize each numbered person's opinion. There are two extra choices which do not fit into any of the blanks. Mark your answers on the ANSWER SHEET. (10 points)
+    <span class="zh">［下列文字是五位读者对 Emma Marris《反对动物园的案例》一文各自的看法。第 41–45 题，从 A–G 中选出最能概括每位人物观点的一句。有两个多余选项。］</span>
+  </div>
+
+  <p class="lead-in">Five readers comment on Emma Marris's article “The Case Against Zoos”.</p>
+
+  <!-- 41 -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-title"><span class="no">41.</span> Teri Byrd</span>
+      <button class="notebtn" data-note="q41" onclick="toggleNote(this)">✎ 批注我的思考</button>
+    </div>
+    <p class="en para"><span class="sent" data-s="q41p1s1">I was a zoo and wildlife park employee for years.</span> <span class="sent" data-s="q41p1s2">Both the wildlife park and zoo claimed to be operating for the benefit of the animals and for conservation purposes.</span> <span class="sent" data-s="q41p1s3">This claim was false.</span> <span class="sent" data-s="q41p1s4">Neither one of them actually participated in any contributions to animal research or conservation.</span> <span class="sent" data-s="q41p1s5">They are profitable institutions whose bottom line is much more important than the condition of the animals.</span></p>
+    <p class="en para"><span class="sent" data-s="q41p2s1">Animals despise being captives in zoos.</span> <span class="sent" data-s="q41p2s2">No matter how you “enhance” enclosures, they do not allow for freedom, a natural diet or adequate exercise.</span> <span class="sent" data-s="q41p2s3">Animals end up stressed and unhealthy or dead.</span> <span class="sent" data-s="q41p2s4">It's past time for transparency with these institutions, and it's past time to eliminate zoos from our culture.</span></p>
+    <div class="notebox" id="nb-q41"><textarea placeholder="做题时我在想什么……（比如：我选了 A，因为……；我怀疑的是……）" oninput="noteInput('q41',this.value)"></textarea><div class="hint">自动保存 · 会随云同步一起上传</div></div>
+  </div>
+
+  <!-- 42 -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-title"><span class="no">42.</span> Karen R. Sime</span>
+      <button class="notebtn" data-note="q42" onclick="toggleNote(this)">✎ 批注我的思考</button>
+    </div>
+    <p class="en para"><span class="sent" data-s="q42p1s1">As a zoology professor, I agree with Emma Marris that zoo displays can be sad and cruel.</span> <span class="sent" data-s="q42p1s2">But she underestimates the educational value of zoos.</span></p>
+    <p class="en para"><span class="sent" data-s="q42p2s1">The zoology program at my university attracts students for whom zoo visits were the crucial formative experience that led them to major in biological sciences.</span> <span class="sent" data-s="q42p2s2">These are mostly students who had no opportunity as children to travel to wilderness areas, wildlife refuges or national parks.</span> <span class="sent" data-s="q42p2s3">Although good TV shows can help stir children's interest in conservation, they cannot replace the excitement of a zoo visit as an intense, immersive and interactive experience.</span> <span class="sent" data-s="q42p2s4">Surely there must be some middle ground that balances zoos' treatment of animals with their educational potential.</span></p>
+    <div class="notebox" id="nb-q42"><textarea placeholder="做题时我在想什么……" oninput="noteInput('q42',this.value)"></textarea><div class="hint">自动保存 · 会随云同步一起上传</div></div>
+  </div>
+
+  <!-- 43 -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-title"><span class="no">43.</span> Greg Newberry</span>
+      <button class="notebtn" data-note="q43" onclick="toggleNote(this)">✎ 批注我的思考</button>
+    </div>
+    <p class="en para"><span class="sent" data-s="q43p1s1">Emma Marris's article is an insult and a disservice to the thousands of passionate, dedicated people who work tirelessly to improve the lives of animals and protect our planet.</span> <span class="sent" data-s="q43p1s2">She uses outdated research and decades-old examples to undermine the noble mission of organizations committed to connecting children to a world beyond their own.</span></p>
+    <p class="en para"><span class="sent" data-s="q43p2s1">Zoos are at the forefront of conservation and constantly evolving to improve how they care for animals and protect each species in its natural habitat.</span> <span class="sent" data-s="q43p2s2">Are there tragedies?</span> <span class="sent" data-s="q43p2s3">Of course.</span> <span class="sent" data-s="q43p2s4">But they are the exception, not the norm that Ms. Marris implies.</span> <span class="sent" data-s="q43p2s5">A distressed animal in a zoo will get as good or better treatment than most of us at our local hospital.</span></p>
+    <div class="notebox" id="nb-q43"><textarea placeholder="做题时我在想什么……" oninput="noteInput('q43',this.value)"></textarea><div class="hint">自动保存 · 会随云同步一起上传</div></div>
+  </div>
+
+  <!-- 44 -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-title"><span class="no">44.</span> Dean Gallea</span>
+      <button class="notebtn" data-note="q44" onclick="toggleNote(this)">✎ 批注我的思考</button>
+    </div>
+    <p class="en para"><span class="sent" data-s="q44p1s1">As a fellow environmentalist, animal-protection advocate and longtime vegetarian, I could properly be in the same camp as Emma Marris on the issue of zoos.</span> <span class="sent" data-s="q44p1s2">But I believe that well-run zoos, and the heroic animals that suffer their captivity, do serve a higher purpose.</span> <span class="sent" data-s="q44p1s3">Were it not for opportunities to observe these beautiful, wild creatures close to home, many more people would be driven by their fascination to travel to wild areas to seek out, disturb and even hunt them down.</span></p>
+    <p class="en para"><span class="sent" data-s="q44p2s1">Zoos are, in that sense, similar to natural history and archaeology museums, serving to satisfy our need for contact with these living creatures while leaving the vast majority undisturbed in their natural environments.</span></p>
+    <div class="notebox" id="nb-q44"><textarea placeholder="做题时我在想什么……" oninput="noteInput('q44',this.value)"></textarea><div class="hint">自动保存 · 会随云同步一起上传</div></div>
+  </div>
+
+  <!-- 45 -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-title"><span class="no">45.</span> John Fraser</span>
+      <button class="notebtn" data-note="q45" onclick="toggleNote(this)">✎ 批注我的思考</button>
+    </div>
+    <p class="en para"><span class="sent" data-s="q45p1s1">Emma Marris selectively describes and misrepresents the findings of our research.</span> <span class="sent" data-s="q45p1s2">Our studies focused on the impact of zoo experiences on how people think about themselves and nature, and the data points extracted from our studies do not, in any way, discount what is learned in a zoo visit.</span></p>
+    <p class="en para"><span class="sent" data-s="q45p2s1">Zoos are tools for thinking.</span> <span class="sent" data-s="q45p2s2">Our research provides strong support for the value of zoos in connecting people with animals and with nature.</span> <span class="sent" data-s="q45p2s3">Zoos provide a critical voice for conservation and environmental protection.</span> <span class="sent" data-s="q45p2s4">They afford an opportunity for people from all backgrounds to encounter a range of animals, from drone bees to springbok or salmon, to better understand the natural world we live in.</span></p>
+    <div class="notebox" id="nb-q45"><textarea placeholder="做题时我在想什么……" oninput="noteInput('q45',this.value)"></textarea><div class="hint">自动保存 · 会随云同步一起上传</div></div>
+  </div>
+
+  <!-- 选项 -->
+  <div class="options">
+    <h3>备选概括句（A–G，两个多余）<span style="font-size:12px;color:var(--gray);font-weight:normal">　——每句也可以划线、也可以单独批注</span></h3>
+
+    <div class="opt"><span class="lab">A.</span><span class="tx en"><span class="sent" data-s="optA">Zoos, which spare no effort to take care of animals, should not be subjected to unfair criticism.</span></span><button class="notebtn" data-note="optA" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optA"><textarea placeholder="对 A 的判断：为什么像对 / 为什么不对……" oninput="noteInput('optA',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">B.</span><span class="tx en"><span class="sent" data-s="optB">To pressure zoos to spend less on their animals would lead to inhumane outcomes for the precious creatures in their care.</span></span><button class="notebtn" data-note="optB" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optB"><textarea placeholder="对 B 的判断……" oninput="noteInput('optB',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">C.</span><span class="tx en"><span class="sent" data-s="optC">While animals in captivity deserve sympathy, zoos play a significant role in starting young people down the path of related sciences.</span></span><button class="notebtn" data-note="optC" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optC"><textarea placeholder="对 C 的判断……" oninput="noteInput('optC',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">D.</span><span class="tx en"><span class="sent" data-s="optD">Zoos save people trips to wilderness areas and thus contribute to wildlife conservation.</span></span><button class="notebtn" data-note="optD" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optD"><textarea placeholder="对 D 的判断……" oninput="noteInput('optD',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">E.</span><span class="tx en"><span class="sent" data-s="optE">For wild animals that cannot be returned to their natural habitats, zoos offer the best alternative.</span></span><button class="notebtn" data-note="optE" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optE"><textarea placeholder="对 E 的判断……" oninput="noteInput('optE',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">F.</span><span class="tx en"><span class="sent" data-s="optF">Zoos should have been closed down as they prioritize money making over animals' wellbeing.</span></span><button class="notebtn" data-note="optF" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optF"><textarea placeholder="对 F 的判断……" oninput="noteInput('optF',this.value)"></textarea><div class="hint">自动保存</div></div>
+
+    <div class="opt"><span class="lab">G.</span><span class="tx en"><span class="sent" data-s="optG">Marris distorts our findings, which actually prove that zoos serve as an indispensable link between man and nature.</span></span><button class="notebtn" data-note="optG" onclick="toggleNote(this)">✎</button></div>
+    <div class="notebox" id="nb-optG"><textarea placeholder="对 G 的判断……" oninput="noteInput('optG',this.value)"></textarea><div class="hint">自动保存</div></div>
+  </div>
+
+  <details class="anskey">
+    <summary>做完再看：参考答案（官方）</summary>
+    <div class="box">41. F　　42. C　　43. A　　44. D　　45. G　　｜　　干扰项：B、E</div>
+  </details>
+</div>
+</div>
+
+<!-- 危险操作弹窗 -->
+<div class="dlgmask" id="dlgmask">
+  <div class="dlg">
+    <h4 id="dlgTitle"></h4>
+    <p id="dlgDesc"></p>
+    <div class="warn">⚠️ 此操作<b>不可撤销</b>，执行后无法恢复。</div>
+    <label><input type="checkbox" id="dlgChk"> <span>我已知悉上述情况，确认要执行</span></label>
+    <div class="ops">
+      <button class="btn" onclick="closeDlg()">取消</button>
+      <button class="btn solid" id="dlgOk" disabled style="background:#cbd5e1;border-color:#cbd5e1;cursor:not-allowed" onclick="dlgConfirm()">确认执行</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>2022 英语一 · Part B 可交互批注卷 · 划线与批注自动保存在本设备，设置秘钥后云同步<br>技巧方法见笔记《1、小标题.md》《2、排序题.md》《3、七选五.md》</footer>
+
+<script>
+/* ================= 数据 ================= */
+var LS_KEY = 'kaoyan_annotate_2022pb_v1';
+var state = { hl:{}, notes:{}, updatedAt:'' };
+
+function loadState(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){ var s = JSON.parse(raw); if(s && s.hl && s.notes){ state = s; } }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    state.updatedAt = new Date().toISOString();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }catch(e){ toast('本地保存失败：' + e); }
+  markDirty();
+}
+
+/* ================= 划线 ================= */
+var HL_CLASSES = ['','hl1','hl2','hl3'];
+function cycleHl(id){
+  var cur = state.hl[id] || 0;
+  var next = (cur + 1) % 4;
+  if(next === 0) delete state.hl[id]; else state.hl[id] = next;
+  applyHl(id, next);
+  saveState(); refreshStat();
+}
+function applyHl(id, v){
+  var els = document.querySelectorAll('.sent[data-s="' + id + '"]');
+  for(var i=0;i<els.length;i++){
+    els[i].className = 'sent' + (v ? ' ' + HL_CLASSES[v] : '');
+  }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var sents = document.querySelectorAll('.sent');
+  for(var i=0;i<sents.length;i++){
+    (function(el){
+      el.addEventListener('click', function(){ cycleHl(el.getAttribute('data-s')); });
+    })(sents[i]);
+  }
+});
+
+/* ================= 批注 ================= */
+function toggleNote(btn){
+  var id = btn.getAttribute('data-note');
+  var box = document.getElementById('nb-' + id);
+  var open = box.classList.toggle('show');
+  if(open){
+    var ta = box.querySelector('textarea');
+    ta.value = state.notes[id] || '';
+    if(id.indexOf('opt') === 0){ ta.placeholder = '对 ' + id.slice(3) + ' 的判断：为什么像对 / 为什么不对……'; }
+    ta.focus();
+  }
+}
+function noteInput(id, v){
+  if(v && v.trim()){ state.notes[id] = v; } else { delete state.notes[id]; }
+  refreshNoteBtn(id); saveState(); refreshStat();
+}
+function refreshNoteBtn(id){
+  var btns = document.querySelectorAll('.notebtn[data-note="' + id + '"]');
+  for(var i=0;i<btns.length;i++){
+    if(state.notes[id] && state.notes[id].trim()){ btns[i].classList.add('has'); }
+    else{ btns[i].classList.remove('has'); }
+  }
+}
+
+/* ================= 统计 / 视图恢复 ================= */
+function refreshStat(){
+  var h = Object.keys(state.hl).length;
+  var n = 0; for(var k in state.notes){ if(state.notes[k] && state.notes[k].trim()) n++; }
+  document.getElementById('stat').textContent = '已划 ' + h + ' 处 · 批注 ' + n + ' 条';
+}
+function applyAll(){
+  for(var id in state.hl){ applyHl(id, state.hl[id]); }
+  for(var nid in state.notes){
+    refreshNoteBtn(nid);
+    var ta = document.querySelector('#nb-' + nid + ' textarea');
+    if(ta && ta.value !== state.notes[nid]) ta.value = state.notes[nid];
+  }
+  refreshStat();
+}
+
+/* ================= 危险操作弹窗 ================= */
+var _dlgAction = null;
+function askClear(){
+  var h = Object.keys(state.hl).length, n = 0;
+  for(var k in state.notes){ if(state.notes[k] && state.notes[k].trim()) n++; }
+  if(!h && !n){ toast('现在是干净的，没什么可清空'); return; }
+  document.getElementById('dlgTitle').textContent = '清空全部划线与批注';
+  document.getElementById('dlgDesc').textContent = '将清空本卷全部 ' + h + ' 处划线和 ' + n + ' 条批注，页面回到全新空白状态，且下次云同步会用空数据覆盖云端 progress.json。';
+  _dlgAction = function(){
+    state = { hl:{}, notes:{}, updatedAt:'' };
+    saveState(); applyAll();
+    var tas = document.querySelectorAll('.notebox textarea');
+    for(var i=0;i<tas.length;i++) tas[i].value = '';
+    var nbs = document.querySelectorAll('.notebtn');
+    for(var j=0;j<nbs.length;j++) nbs[j].classList.remove('has');
+    toast('已清空，全新开始');
+  };
+  document.getElementById('dlgmask').classList.add('show');
+  var chk = document.getElementById('dlgChk'), ok = document.getElementById('dlgOk');
+  chk.checked = false; ok.disabled = true;
+  ok.style.background = '#cbd5e1'; ok.style.borderColor = '#cbd5e1';
+  chk.onchange = function(){
+    ok.disabled = !chk.checked;
+    if(chk.checked){ ok.style.background = '#dc2626'; ok.style.borderColor = '#dc2626'; }
+    else{ ok.style.background = '#cbd5e1'; ok.style.borderColor = '#cbd5e1'; }
+  };
+}
+function closeDlg(){ document.getElementById('dlgmask').classList.remove('show'); _dlgAction = null; }
+function dlgConfirm(){ if(_dlgAction){ var f = _dlgAction; closeDlg(); f(); } }
+document.getElementById('dlgmask').addEventListener('click', function(e){ if(e.target === this) closeDlg(); });
+
+/* ================= 云同步（GitHub Contents API） ================= */
+var SYNC_TOKEN_KEY = 'wb_sync_token_v1';   /* 与背单词站共用同一秘钥（同域 localStorage） */
+var SYNC_FILE = 'progress.json';
+var SYNC_REPO = 'shuoshizaiyuan/kaoyan-annotate';
+var _syncTimer = null;
+
+function getSyncToken(){ try{ return localStorage.getItem(SYNC_TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function setSyncToken(t){ try{ localStorage.setItem(SYNC_TOKEN_KEY, t); }catch(e){} }
+function delSyncToken(){ try{ localStorage.removeItem(SYNC_TOKEN_KEY); }catch(e){} }
+
+function toggleSync(){
+  var p = document.getElementById('syncPanel');
+  p.classList.toggle('show');
+  refreshSyncSt();
+}
+function saveSync(){
+  var t = document.getElementById('syncTok').value.trim();
+  if(!t){ toast('请先粘贴同步秘钥'); return; }
+  setSyncToken(t);
+  document.getElementById('syncTok').value = '';
+  refreshSyncSt();
+  toast('✔ 秘钥已保存，正在连接云端…');
+  manualDownload(function(ok){
+    manualUpload();
+  });
+}
+function clearSync(){
+  delSyncToken(); refreshSyncSt(); toast('已清除秘钥，恢复纯本地模式');
+}
+function refreshSyncSt(){
+  var el = document.getElementById('syncSt');
+  if(getSyncToken()){ el.textContent = '✔ 当前已设置秘钥：划线/批注后约 4 秒自动上传云端'; }
+  else{ el.textContent = '未设置秘钥，当前为纯本地模式（进度只存在本设备）'; }
+}
+
+function syncApi(method, payload, cb){
+  var token = getSyncToken();
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, 'https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE);
+  xhr.setRequestHeader('Accept', 'application/vnd.github+json');
+  if(token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+  if(payload) xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onload = function(){ cb && cb(xhr.status, xhr.responseText); };
+  xhr.onerror = function(){ cb && cb(0, ''); };
+  xhr.send(payload ? JSON.stringify(payload) : null);
+}
+function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+
+function uploadToCloud(done){
+  if(!getSyncToken()){ if(done) done(false); return; }
+  syncApi('GET', null, function(st, resp){
+    var sha = '';
+    if(st === 200){ try{ sha = JSON.parse(resp).sha; }catch(e){} }
+    var body = { message: 'sync annotations 2022 partB', content: b64e(JSON.stringify(state)), branch: 'main' };
+    if(sha) body.sha = sha;
+    syncApi('PUT', body, function(st2){
+      if(st2 === 200 || st2 === 201){ toast('☁ 已上传云端'); if(done) done(true); }
+      else if(st2 === 401 || st2 === 403){ toast('☁ 上传失败（' + st2 + '）：秘钥无效或无本仓库写权限'); if(done) done(false); }
+      else if(st2 === 409){ toast('☁ 云端有更新，请先「拉取云端」再上传'); if(done) done(false); }
+      else { toast('☁ 上传失败（' + st2 + '），稍后再试'); if(done) done(false); }
+    });
+  });
+}
+function downloadFromCloud(done){
+  if(!getSyncToken()){ toast('请先保存同步秘钥'); if(done) done(false); return; }
+  syncApi('GET', null, function(st, resp){
+    if(st === 404){ toast('云端还没有进度文件，直接做题即可（会自动创建）'); if(done) done(false); return; }
+    if(st !== 200){ toast('☁ 拉取失败（' + st + '）：请检查秘钥'); if(done) done(false); return; }
+    try{
+      var remote = JSON.parse(b64d(JSON.parse(resp).content));
+      if(!(remote && remote.hl && remote.notes)) throw 0;
+      state = remote;
+      saveState(); applyAll();
+      toast('☁ 已拉取云端进度：划线 ' + Object.keys(state.hl).length + ' 处 · 批注 ' + Object.keys(state.notes).length + ' 条');
+      if(done) done(true);
+    }catch(e){ toast('云端数据无法解析'); if(done) done(false); }
+  });
+}
+function manualUpload(){ if(!getSyncToken()){ toast('请先保存同步秘钥'); return; } uploadToCloud(null); }
+function manualDownload(cb){ downloadFromCloud(cb || null); }
+
+function markDirty(){
+  if(!getSyncToken()) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(function(){ uploadToCloud(null); }, 4000);
+}
+
+/* ================= toast ================= */
+var _toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+/* ================= 启动 ================= */
+loadState();
+document.addEventListener('DOMContentLoaded', function(){
+  applyAll();
+  refreshSyncSt();
+});
+</script>
+</body>
+</html>
