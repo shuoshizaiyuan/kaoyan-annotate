@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2018 英语一 Part B · 可交互批注卷（段落排序）</title>
+<style>
+:root{--ink:#1c1c1e;--paper:#fffdf8;--edge:#e8e2d4;--red:#c0392b;--red-bg:#fdecea;--blue:#1d4ed8;--blue-bg:#eaf3fc;--green:#1e7f4f;--green-bg:#e9f7ef;--yellow:#fff3a8;--yellow-edge:#e6d24a;--gray:#6b6b6b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#f2efe9;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);padding:0 12px 90px;}
+.bar{position:sticky;top:0;z-index:100;background:#ffffffee;backdrop-filter:blur(6px);border-bottom:1px solid var(--edge);padding:10px 0;}
+.bar-in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 4px;}
+.bar b{font-size:15px;}
+.backlink{font-size:13px;font-weight:700;color:var(--blue);text-decoration:none;}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--edge);background:#fff;}
+.chip .sw{width:13px;height:13px;border-radius:3px;display:inline-block;}
+.stat{font-size:12.5px;color:var(--gray);margin-left:auto;}
+.score{font-size:13px;font-weight:800;color:var(--green);background:var(--green-bg);border:1px solid #bfe5cf;padding:3px 12px;border-radius:20px;display:none;}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:13.5px;font-weight:600;cursor:pointer;}
+.btn.solid{background:var(--blue);color:#fff;}
+.btn.grading{border-color:var(--green);background:var(--green);color:#fff;}
+.btn.danger{border-color:var(--red);color:var(--red);}
+.btn:active{transform:scale(.97);}
+.syncpanel{max-width:980px;margin:12px auto 0;background:#fff;border:1px solid var(--edge);border-radius:12px;padding:16px 20px;font-size:13.5px;line-height:1.8;display:none;}
+.syncpanel.show{display:block;}
+.syncpanel h3{font-size:14.5px;margin-bottom:8px;color:var(--blue);}
+.syncpanel .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.syncpanel input[type=text]{flex:1;min-width:230px;padding:9px 12px;border:1px solid #dbe1ec;border-radius:9px;font-size:13.5px;font-family:Consolas,monospace;}
+#syncSt{margin-top:6px;font-weight:600;color:var(--blue);}
+.syncpanel .tip{color:var(--gray);font-size:12.5px;margin-top:8px;}
+.wrap{max-width:980px;margin:18px auto 0;}
+.paper{background:var(--paper);border:1px solid var(--edge);border-radius:6px;box-shadow:0 3px 14px rgba(0,0,0,.08);padding:38px 46px;}
+@media (max-width:640px){.paper{padding:22px 16px;}}
+.paper-head{text-align:center;border-bottom:2.5px double #9a938a;padding-bottom:14px;margin-bottom:22px;}
+.paper-head h2{font-size:18px;letter-spacing:1px;}
+.paper-head p{font-size:13px;color:var(--gray);margin-top:4px;}
+.directions{font-size:13.5px;line-height:1.9;background:#f6f3ea;border-left:4px solid #b9b1a0;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:10px;}
+.en{font-family:Georgia,"Times New Roman",serif;font-size:15px;line-height:2.0;}
+.q{margin:28px 0 34px;}
+.q-head{display:flex;align-items:center;border-bottom:1px dashed #c9c2b4;padding-bottom:4px;margin-bottom:10px;}
+.q-title{font-family:Georgia,serif;font-size:15.5px;font-weight:bold;}
+.q-title .no{color:var(--blue);}
+.notebtn{margin-left:auto;font-size:12.5px;padding:3px 11px;border-radius:16px;border:1px solid var(--blue);color:var(--blue);background:#fff;cursor:pointer;}
+.notebtn.has{background:var(--blue-bg);font-weight:700;}
+.notebtn.has::after{content:" ●";color:var(--red);font-size:10px;}
+.notebtn.ansnote{margin-left:6px;}
+.para{margin:10px 0;text-indent:2em;}
+.sent{cursor:pointer;border-radius:3px;padding:0 1px;transition:background .12s;}
+.sent:hover{outline:1.5px dashed #b9b1a0;}
+.hl1{background:var(--yellow);border-bottom:2px solid var(--yellow-edge);}
+.mark2{background:#c9f2d9;border-bottom:2px solid #4fbf82;border-radius:2px;cursor:pointer;}
+.mark3{background:#ffd9d2;border-bottom:2px solid #e77a68;border-radius:2px;cursor:pointer;}
+#mbar{position:fixed;z-index:10001;display:none;align-items:center;gap:6px;background:#0f172a;border-radius:10px;padding:6px 8px;box-shadow:0 8px 24px rgba(15,23,42,.35);}
+#mbar.show{display:flex;}
+#mbar button{border:none;border-radius:7px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;}
+#mbar .mg{background:#c9f2d9;color:#14532d;}
+#mbar .mr{background:#ffd9d2;color:#7f1d1d;}
+#mbar .mx{background:#334155;color:#cbd5e1;}
+.options{margin-top:34px;border-top:2.5px double #9a938a;padding-top:18px;}
+.options h3{font-size:15px;margin-bottom:12px;}
+.opt{display:flex;gap:10px;margin:8px 0;align-items:flex-start;}
+.opt .lab{font-family:Georgia,serif;font-weight:bold;min-width:26px;font-size:14.5px;}
+.opt .tx{font-size:14.5px;flex:1;}
+.opt .notebtn{margin-left:4px;flex:none;}
+.fixedtag2{flex:none;font-size:11px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:1px 8px;margin-left:6px;white-space:nowrap;}
+.ansarea{margin-top:30px;border-top:2.5px double #9a938a;padding-top:16px;}
+.ansarea h3{font-size:15px;margin-bottom:6px;}
+.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0 6px;padding:14px;background:#f6f3ea;border-radius:10px;}
+.fchip{display:inline-flex;align-items:center;gap:5px;font-family:Georgia,serif;font-weight:bold;font-size:15px;background:var(--blue);color:#fff;border-radius:8px;padding:6px 12px;}
+.fchip .ftag{font-size:10.5px;font-weight:normal;background:#ffffff33;border-radius:8px;padding:1px 6px;}
+.bbox{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:44px;height:40px;border:2px dashed #9a938a;border-radius:8px;background:#fff;}
+.bbox .bno{font-family:Georgia,serif;font-weight:bold;color:var(--blue);font-size:14px;}
+.blankslot{display:flex;align-items:center;justify-content:center;margin:14px 0;}
+.blankslot .bno,.inblank .bno{font-family:Georgia,serif;font-weight:bold;color:var(--blue);}
+.blankslot{border:2px dashed #b9b1a0;border-radius:10px;background:#fbf7ec;padding:8px 18px;font-size:14px;color:var(--gray);}
+.inblank{display:inline-block;border:2px dashed #b9b1a0;border-radius:8px;background:#fbf7ec;padding:0 10px;margin:0 4px;line-height:1.9;}
+.ansrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:12px 0 2px;padding:10px 14px;background:#f6f3ea;border-radius:9px;}
+.ansrow .lab2{font-size:13px;font-weight:700;color:var(--blue);}
+.abtn{width:31px;height:31px;border-radius:50%;border:1.5px solid #c9c2b4;background:#fff;font-family:Georgia,serif;font-weight:bold;font-size:14px;color:#475569;cursor:pointer;}
+.abtn:hover{border-color:var(--blue);}
+.abtn.sel{background:var(--blue);border-color:var(--blue);color:#fff;}
+.judge{margin-left:auto;font-size:13px;font-weight:800;}
+.judge.ok{color:var(--green);}
+.judge.no{color:var(--red);}
+.notebox{display:none;margin:10px 0 0;}
+.notebox.show{display:block;}
+.notebox textarea{width:100%;min-height:74px;padding:10px 12px;border:1.5px solid #b9b1a0;border-radius:9px;font-size:13.5px;font-family:"Microsoft YaHei",sans-serif;line-height:1.7;background:#fffdf6;resize:vertical;}
+.notebox textarea:focus{outline:none;border-color:var(--blue);}
+.notebox .hint{font-size:11.5px;color:var(--gray);margin-top:3px;}
+details.anskey{margin-top:20px;}
+details.anskey summary{cursor:pointer;font-weight:bold;color:var(--blue);font-size:14px;}
+details.anskey .box{margin-top:10px;padding:12px 16px;border:1.5px solid var(--green);border-radius:8px;background:var(--green-bg);color:var(--green);font-weight:bold;font-size:15px;}
+.dlgmask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99999;display:none;align-items:center;justify-content:center;padding:16px;}
+.dlgmask.show{display:flex;}
+.dlg{background:#fff;border-radius:16px;padding:22px 24px;max-width:460px;width:100%;box-shadow:0 16px 48px rgba(15,23,42,.3);}
+.dlg h4{font-size:17px;margin-bottom:10px;}
+.dlg p{font-size:14px;line-height:1.9;color:#475569;}
+.dlg .warn{font-size:13.5px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 12px;margin:12px 0 14px;}
+.dlg .ops{display:flex;gap:10px;justify-content:flex-end;}
+.dlg label{display:flex;gap:9px;font-size:14px;color:#374151;margin-bottom:18px;cursor:pointer;line-height:1.6;}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);background:#0f172a;color:#fff;font-size:13.5px;padding:10px 20px;border-radius:22px;opacity:0;pointer-events:none;transition:.25s;z-index:100000;}
+#toast.show{opacity:.94;}
+footer{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:34px;line-height:1.9;}
+</style>
+</head>
+<body>
+<div id="mbar">
+  <button class="mg" onclick="applyMark(2)">🟢 对应词</button>
+  <button class="mr" onclick="applyMark(3)">🔴 陷阱</button>
+  <button class="mx" onclick="hideMbar()">✕</button>
+</div>
+<div class="bar">
+  <div class="bar-in">
+    <a class="backlink" href="../xintixing.html">← 年份</a>
+    <b>📑 2018 Part B · 段落排序</b>
+    <span class="chip"><span class="sw" style="background:var(--yellow);border:1px solid var(--yellow-edge)"></span>该读句（点击整句）</span>
+    <span class="chip"><span class="sw" style="background:#c9f2d9;border:1px solid #4fbf82"></span>对应词（拖选）</span>
+    <span class="chip"><span class="sw" style="background:#ffd9d2;border:1px solid #e77a68"></span>陷阱（拖选）</span>
+    <span class="score" id="scoreChip">未判分</span>
+    <span class="stat" id="stat">黄句 0 · 词组 0 · 批注 0 · 已答 0/5</span>
+    <button class="btn grading" onclick="submitPaper()">✓ 交卷判分</button>
+    <button class="btn" onclick="toggleSync()">☁ 同步</button>
+    <button class="btn danger" onclick="askClear()">清空</button>
+  </div>
+</div>
+<div class="syncpanel" id="syncPanel">
+  <h3>☁ GitHub 云同步</h3>
+  <div>粘贴一次同步秘钥（GitHub 密钥，<code>github_pat_</code> 开头），之后<b>每次划线 / 批注 / 作答约 4 秒后自动上传</b>；换设备粘贴同一秘钥点「拉取云端」即可接续。总门户还有「全站同步」可一次拉取/推送所有卷。</div>
+  <div class="row">
+    <input type="text" id="syncTok" placeholder="粘贴 github_pat_ 开头的同步秘钥">
+    <button class="btn solid" onclick="saveSync()">保存秘钥</button>
+    <button class="btn" onclick="manualUpload()">手动上传</button>
+    <button class="btn" onclick="manualDownload()">拉取云端</button>
+    <button class="btn" onclick="clearSync()">清除</button>
+  </div>
+  <div id="syncSt"></div>
+  <div class="tip">数据文件：<code>progress.json</code>（仓库 kaoyan-annotate，按卷分页存储）。秘钥只保存在本机浏览器。</div>
+</div>
+<div class="wrap">
+<div class="paper">
+  <div class="paper-head">
+    <h2>Section Ⅱ Reading Comprehension · Part B（10 points）</h2>
+    <p>2018 年全国硕士研究生招生考试 英语（一）真题 · 段落排序 · 可交互批注版</p>
+  </div>
+  <div class="directions">
+    <b>Directions:</b><br>
+    The following paragraphs are given in a wrong order. For questions 41 -45, you are required to reorganize these paragraphs into a coherent text by choosing from the list A-G and filling them into the numbered boxes. Paragraphs C and F have been correctly placed. Mark your answers on the ANSWER SHEET. (10 points)
+  </div>
+<div class="flowline"><span class="bbox" id="box-41"><span class="bno">41</span></span><span class="fchip">C<span class="ftag">已预给</span></span><span class="bbox" id="box-42"><span class="bno">42</span></span><span class="bbox" id="box-43"><span class="bno">43</span></span><span class="fchip">F<span class="ftag">已预给</span></span><span class="bbox" id="box-44"><span class="bno">44</span></span><span class="bbox" id="box-45"><span class="bno">45</span></span></div>
+<div class="opt"><span class="lab">[A]</span><span class="tx en"><span class="sent" data-s="2018-optA-s1">In December of 1869, Congress appointed a commission to select a site and prepare plans and cost estimates for a new State Department Building.</span> <span class="sent" data-s="2018-optA-s2">The commission was also to consider possible arrangements for the War and Navy Departments.</span> <span class="sent" data-s="2018-optA-s3">To the horror of some who expected a Greek Revival twin of the Treasury Building to be erected on the other side of the White House, the elaborate French Second Empire style design by Alfred Mullett was selected, and construction of a building to house all three departments began in June of 1871.</span></span><button class="notebtn" data-note="optA" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optA"><textarea placeholder="对段落 A 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optA',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[B]</span><span class="tx en"><span class="sent" data-s="2018-optB-s1">Completed in 1875, the State Department's south wing was the first to be occupied, with its elegant four-story library (completed in 1876), Diplomatic Reception Room, and Secretary's office decorated with carved wood, Oriental rugs, and stenciled wall patterns.</span> <span class="sent" data-s="2018-optB-s2">The Navy Department moved into the east wing in 1879, where elaborate wall and ceiling stenciling and marquetry floors decorated the office of the Secretary.</span></span><button class="notebtn" data-note="optB" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optB"><textarea placeholder="对段落 B 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optB',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[C]</span><span class="tx en"><span class="sent" data-s="2018-optC-s1">The State, War, and Navy Building, as it was originally known, housed the three Executive Branch Departments most intimately associated with formulating and conducting the nation's foreign policy in the last quarter of the nineteenth century and the first quarter of the twentieth century – the period when the United States emerged as an international power.</span> <span class="sent" data-s="2018-optC-s2">The building has housed some of the nation's most significant diplomats and politicians and has been the scene of many historic events.</span></span><span class="fixedtag2">已预给</span><button class="notebtn" data-note="optC" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optC"><textarea placeholder="对段落 C 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optC',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[D]</span><span class="tx en"><span class="sent" data-s="2018-optD-s1">Many of the most celebrated national figures have participated in historical events that have taken place within the EEOB's granite walls.</span> <span class="sent" data-s="2018-optD-s2">Theodore and Franklin D.</span> <span class="sent" data-s="2018-optD-s3">Roosevelt, William Howard Taft, Dwight D.</span> <span class="sent" data-s="2018-optD-s4">Eisenhower, Lyndon B.</span> <span class="sent" data-s="2018-optD-s5">Johnson, Gerald Ford, and George H.</span> <span class="sent" data-s="2018-optD-s6">W.</span> <span class="sent" data-s="2018-optD-s7">Bush all had offices in this building before becoming president.</span> <span class="sent" data-s="2018-optD-s8">It has housed 16 Secretaries of the Navy, 21 Secretaries of War, and 24 Secretaries of State.</span> <span class="sent" data-s="2018-optD-s9">Winston Churchill once walked its corridors and Japanese emissaries met here with Secretary of State Cordell Hull after the bombing of Pearl Harbor.</span></span><button class="notebtn" data-note="optD" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optD"><textarea placeholder="对段落 D 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optD',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[E]</span><span class="tx en"><span class="sent" data-s="2018-optE-s1">The Eisenhower Executive Office Building (EEOB) commands a unique position in both the national history and the architectural heritage of the United States.</span> <span class="sent" data-s="2018-optE-s2">Designed by Supervising Architect of the Treasury, Alfred B.</span> <span class="sent" data-s="2018-optE-s3">Mullett, it was built from 1871 to 1888 to house the growing staffs of the State, War, and Navy Departments, and is considered one of the best examples of French Second Empire architecture in the country.</span></span><button class="notebtn" data-note="optE" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optE"><textarea placeholder="对段落 E 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optE',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[F]</span><span class="tx en"><span class="sent" data-s="2018-optF-s1">Construction took 17 years as the building slowly rose wing by wing.</span> <span class="sent" data-s="2018-optF-s2">When the EEOB was finished, it was the largest office building in Washington, with nearly 2 miles of black and white tiled corridors.</span> <span class="sent" data-s="2018-optF-s3">Almost all of the interior detail is of cast iron or plaster; the use of wood was minimized to insure fire safety.</span> <span class="sent" data-s="2018-optF-s4">Eight monumental curving staircases of granite with over 4,000 individually cast bronze balusters are capped by four skylight domes and two stained glass rotundas.</span></span><span class="fixedtag2">已预给</span><button class="notebtn" data-note="optF" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optF"><textarea placeholder="对段落 F 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optF',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="opt"><span class="lab">[G]</span><span class="tx en"><span class="sent" data-s="2018-optG-s1">The history of the EEOB began long before its foundations were laid.</span> <span class="sent" data-s="2018-optG-s2">The first executive offices were constructed between 1799 and 1820.</span> <span class="sent" data-s="2018-optG-s3">A series of fires (including those set by the British in 1814) and overcrowded conditions led to the construction of the existing Treasury Building.</span> <span class="sent" data-s="2018-optG-s4">In 1866, the construction of the North Wing of the Treasury Building necessitated the demolition of the State Department building.</span></span><button class="notebtn" data-note="optG" onclick="toggleNote(this)">✎</button></div><div class="notebox" id="nb-optG"><textarea placeholder="对段落 G 的判断：承接谁 / 被谁承接 / 为什么像对 / 为什么不对……" oninput="noteInput('optG',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="ansarea"><h3>答题区（点选字母即作答，再点取消）</h3><div class="ansrow" id="ansrow-q41"><span class="lab2">41 我选：</span><button class="abtn" data-l="A" onclick="pickAnswer('q41','A')">A</button><button class="abtn" data-l="B" onclick="pickAnswer('q41','B')">B</button><button class="abtn" data-l="C" onclick="pickAnswer('q41','C')">C</button><button class="abtn" data-l="D" onclick="pickAnswer('q41','D')">D</button><button class="abtn" data-l="E" onclick="pickAnswer('q41','E')">E</button><button class="abtn" data-l="F" onclick="pickAnswer('q41','F')">F</button><button class="abtn" data-l="G" onclick="pickAnswer('q41','G')">G</button><button class="notebtn ansnote" data-note="q41" onclick="toggleNote(this)">✎ 思考</button><span class="judge"></span></div><div class="notebox" id="nb-q41"><textarea placeholder="做题时我在想什么……（为什么选它 / 排除谁……）" oninput="noteInput('q41',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="ansrow" id="ansrow-q42"><span class="lab2">42 我选：</span><button class="abtn" data-l="A" onclick="pickAnswer('q42','A')">A</button><button class="abtn" data-l="B" onclick="pickAnswer('q42','B')">B</button><button class="abtn" data-l="C" onclick="pickAnswer('q42','C')">C</button><button class="abtn" data-l="D" onclick="pickAnswer('q42','D')">D</button><button class="abtn" data-l="E" onclick="pickAnswer('q42','E')">E</button><button class="abtn" data-l="F" onclick="pickAnswer('q42','F')">F</button><button class="abtn" data-l="G" onclick="pickAnswer('q42','G')">G</button><button class="notebtn ansnote" data-note="q42" onclick="toggleNote(this)">✎ 思考</button><span class="judge"></span></div><div class="notebox" id="nb-q42"><textarea placeholder="做题时我在想什么……（为什么选它 / 排除谁……）" oninput="noteInput('q42',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="ansrow" id="ansrow-q43"><span class="lab2">43 我选：</span><button class="abtn" data-l="A" onclick="pickAnswer('q43','A')">A</button><button class="abtn" data-l="B" onclick="pickAnswer('q43','B')">B</button><button class="abtn" data-l="C" onclick="pickAnswer('q43','C')">C</button><button class="abtn" data-l="D" onclick="pickAnswer('q43','D')">D</button><button class="abtn" data-l="E" onclick="pickAnswer('q43','E')">E</button><button class="abtn" data-l="F" onclick="pickAnswer('q43','F')">F</button><button class="abtn" data-l="G" onclick="pickAnswer('q43','G')">G</button><button class="notebtn ansnote" data-note="q43" onclick="toggleNote(this)">✎ 思考</button><span class="judge"></span></div><div class="notebox" id="nb-q43"><textarea placeholder="做题时我在想什么……（为什么选它 / 排除谁……）" oninput="noteInput('q43',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="ansrow" id="ansrow-q44"><span class="lab2">44 我选：</span><button class="abtn" data-l="A" onclick="pickAnswer('q44','A')">A</button><button class="abtn" data-l="B" onclick="pickAnswer('q44','B')">B</button><button class="abtn" data-l="C" onclick="pickAnswer('q44','C')">C</button><button class="abtn" data-l="D" onclick="pickAnswer('q44','D')">D</button><button class="abtn" data-l="E" onclick="pickAnswer('q44','E')">E</button><button class="abtn" data-l="F" onclick="pickAnswer('q44','F')">F</button><button class="abtn" data-l="G" onclick="pickAnswer('q44','G')">G</button><button class="notebtn ansnote" data-note="q44" onclick="toggleNote(this)">✎ 思考</button><span class="judge"></span></div><div class="notebox" id="nb-q44"><textarea placeholder="做题时我在想什么……（为什么选它 / 排除谁……）" oninput="noteInput('q44',this.value)"></textarea><div class="hint">自动保存</div></div>
+<div class="ansrow" id="ansrow-q45"><span class="lab2">45 我选：</span><button class="abtn" data-l="A" onclick="pickAnswer('q45','A')">A</button><button class="abtn" data-l="B" onclick="pickAnswer('q45','B')">B</button><button class="abtn" data-l="C" onclick="pickAnswer('q45','C')">C</button><button class="abtn" data-l="D" onclick="pickAnswer('q45','D')">D</button><button class="abtn" data-l="E" onclick="pickAnswer('q45','E')">E</button><button class="abtn" data-l="F" onclick="pickAnswer('q45','F')">F</button><button class="abtn" data-l="G" onclick="pickAnswer('q45','G')">G</button><button class="notebtn ansnote" data-note="q45" onclick="toggleNote(this)">✎ 思考</button><span class="judge"></span></div><div class="notebox" id="nb-q45"><textarea placeholder="做题时我在想什么……（为什么选它 / 排除谁……）" oninput="noteInput('q45',this.value)"></textarea><div class="hint">自动保存</div></div></div>
+  <details class="anskey">
+    <summary>做完再看：参考答案（官方）（段落排序：已预给 C、F，无多余项）</summary>
+    <div class="box">41. E　　42. G　　43. A　　44. B　　45. D</div>
+  </details>
+</div>
+</div>
+<div class="dlgmask" id="dlgmask">
+  <div class="dlg">
+    <h4 id="dlgTitle"></h4>
+    <p id="dlgDesc"></p>
+    <div class="warn">⚠️ 此操作<b>不可撤销</b>，执行后无法恢复。</div>
+    <label><input type="checkbox" id="dlgChk"> <span>我已知悉上述情况，确认要执行</span></label>
+    <div class="ops">
+      <button class="btn" onclick="closeDlg()">取消</button>
+      <button class="btn solid" id="dlgOk" disabled style="background:#cbd5e1;border-color:#cbd5e1;cursor:not-allowed" onclick="dlgConfirm()">确认执行</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<footer>2018 英语一 · Part B 段落排序 可交互批注卷 · <a href="../xintixing.html" style="color:#1d4ed8">← 返回年份选择</a><br>划线、批注与作答自动保存在本设备，设置秘钥后云同步 · 技巧方法见笔记《1、小标题.md》《2、排序题.md》《3、七选五.md》</footer>
+<script>
+var LS_KEY = 'kaoyan_annotate_2018xt_v1';
+var PAGE_ID = '2018xt';
+var LETTERS = 'ABCDEFG';
+var ANS_KEY = {"q41": "E", "q42": "G", "q43": "A", "q44": "B", "q45": "D"};
+var state = { hl:{}, marks:{}, notes:{}, answers:{}, result:null, updatedAt:'' };
+function loadState(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      var s = JSON.parse(raw);
+      if(s && s.hl && s.notes){
+        state = s;
+        if(!state.marks) state.marks = {};
+        if(!state.answers) state.answers = {};
+        if(!('result' in state)) state.result = null;
+        for(var k in state.hl){ if(state.hl[k] !== 1) delete state.hl[k]; }
+      }
+    }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    state.updatedAt = new Date().toISOString();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }catch(e){ toast('本地保存失败：' + e); }
+  markDirty();
+}
+function applyHl(id, on){
+  var els = document.querySelectorAll('.sent[data-s="' + id + '"]');
+  for(var i=0;i<els.length;i++){ els[i].className = 'sent' + (on ? ' hl1' : ''); }
+}
+function toggleYl(id){
+  if(state.hl[id] === 1){ delete state.hl[id]; applyHl(id, false); }
+  else{ state.hl[id] = 1; applyHl(id, true); }
+  saveState(); refreshStat();
+}
+var _pend = null;
+function renderMarks(id){
+  var els = document.querySelectorAll('.sent[data-s="' + id + '"]');
+  if(!els.length) return;
+  var marks = (state.marks[id] || []).slice().sort(function(a,b){ return a.start - b.start; });
+  for(var i=0;i<els.length;i++){
+    var el = els[i];
+    var text = el.textContent;
+    if(!marks.length){ if(el.childNodes.length !== 1 || el.firstChild.nodeType !== 3){ el.textContent = text; } continue; }
+    var frag = document.createDocumentFragment();
+    var pos = 0;
+    for(var j=0;j<marks.length;j++){
+      var m = marks[j];
+      if(m.start > pos) frag.appendChild(document.createTextNode(text.slice(pos, m.start)));
+      var sp = document.createElement('span');
+      sp.className = (m.c === 2 ? 'mark2' : 'mark3');
+      sp.setAttribute('data-ms', m.start);
+      sp.setAttribute('data-me', m.end);
+      sp.textContent = text.slice(m.start, m.end);
+      frag.appendChild(sp);
+      pos = m.end;
+    }
+    if(pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+    el.innerHTML = '';
+    el.appendChild(frag);
+  }
+}
+function applyMark(c){
+  if(!_pend) return;
+  var arr = state.marks[_pend.id] || [];
+  arr = arr.filter(function(m){ return !(m.start < _pend.end && m.end > _pend.start); });
+  arr.push({ start:_pend.start, end:_pend.end, c:c });
+  state.marks[_pend.id] = arr;
+  renderMarks(_pend.id);
+  saveState(); refreshStat();
+  hideMbar();
+  var sel = window.getSelection(); if(sel) sel.removeAllRanges();
+  toast(c === 2 ? '🟢 已标为对应词（点它可删除）' : '🔴 已标为陷阱（点它可删除）');
+}
+function hideMbar(){ document.getElementById('mbar').classList.remove('show'); _pend = null; }
+document.addEventListener('mouseup', function(e){
+  if(e.target && e.target.closest && e.target.closest('#mbar')) return;
+  setTimeout(function(){
+    var sel = window.getSelection();
+    if(!sel || sel.isCollapsed || !sel.rangeCount){ return; }
+    var txt = sel.toString();
+    if(!txt.replace(/\s/g,'')){ return; }
+    var range = sel.getRangeAt(0);
+    var node = range.commonAncestorContainer;
+    var sent = (node.nodeType === 3 ? node.parentNode : node);
+    sent = (sent && sent.closest) ? sent.closest('.sent') : null;
+    if(!sent){ hideMbar(); toast('请一次只划一句之内的内容'); return; }
+    function offBefore(n, o){
+      var r = document.createRange();
+      r.selectNodeContents(sent);
+      try{ r.setEnd(n, o); }catch(err){ return -1; }
+      return r.toString().length;
+    }
+    var s1 = offBefore(range.startContainer, range.startOffset);
+    var e1 = offBefore(range.endContainer, range.endOffset);
+    if(s1 < 0 || e1 < 0){ hideMbar(); return; }
+    if(s1 > e1){ var t2 = s1; s1 = e1; e1 = t2; }
+    if(sent.textContent.slice(s1, e1) !== txt){ hideMbar(); toast('请一次只划一句之内的内容'); return; }
+    _pend = { id: sent.getAttribute('data-s'), start: s1, end: e1 };
+    var rect = range.getBoundingClientRect();
+    var mb = document.getElementById('mbar');
+    mb.classList.add('show');
+    mb.style.left = Math.max(8, Math.min(rect.left + rect.width/2 - 92, window.innerWidth - 200)) + 'px';
+    mb.style.top = Math.max(8, rect.top - 46) + 'px';
+  }, 10);
+});
+document.addEventListener('mousedown', function(e){
+  if(e.target && e.target.closest && e.target.closest('#mbar')) return;
+  hideMbar();
+});
+document.addEventListener('click', function(e){
+  var mEl = (e.target.closest) ? e.target.closest('.mark2,.mark3') : null;
+  if(mEl){
+    var sent = mEl.closest('.sent');
+    var id = sent.getAttribute('data-s');
+    var ms = +mEl.getAttribute('data-ms'), me = +mEl.getAttribute('data-me');
+    state.marks[id] = (state.marks[id] || []).filter(function(m){ return !(m.start === ms && m.end === me); });
+    if(!state.marks[id].length) delete state.marks[id];
+    renderMarks(id); saveState(); refreshStat();
+    toast('已删除该词组标记');
+    return;
+  }
+  var sel = window.getSelection();
+  if(sel && !sel.isCollapsed && sel.toString().length > 0) return;
+  if(e.detail > 1) return;
+  var t = e.target, el = null;
+  while(t && t !== document.body){
+    if(t.classList && t.classList.contains('sent')){ el = t; break; }
+    t = t.parentNode;
+  }
+  if(el){ toggleYl(el.getAttribute('data-s')); }
+});
+function pickAnswer(q, L){
+  if(state.answers[q] === L){ delete state.answers[q]; }
+  else{ state.answers[q] = L; }
+  saveState(); refreshStat(); renderResult();
+}
+function submitPaper(){
+  var un = [];
+  for(var i=41;i<=45;i++){ if(!state.answers['q'+i]) un.push(i); }
+  if(un.length){
+    if(!confirm('第 ' + un.join('、') + ' 题还没作答（按错算），确定交卷判分？')) return;
+  }
+  var right = 0, detail = {};
+  for(var q in ANS_KEY){
+    var ok = (state.answers[q] === ANS_KEY[q]);
+    detail[q] = ok;
+    if(ok) right++;
+  }
+  state.result = { score: right*2, detail: detail, time: new Date().toISOString() };
+  saveState(); renderResult(); refreshStat();
+  toast('判分完成：对 ' + right + ' 题 · 得 ' + right*2 + ' / 10 分');
+}
+function renderResult(){
+  for(var q in ANS_KEY){
+    var row = document.getElementById('ansrow-' + q);
+    if(!row) continue;
+    var btns = row.querySelectorAll('.abtn');
+    for(var k=0;k<btns.length;k++){
+      var L = btns[k].getAttribute('data-l');
+      btns[k].className = 'abtn' + (state.answers[q] === L ? ' sel' : '');
+    }
+    var j = row.querySelector('.judge');
+    if(state.result && state.result.detail){
+      var ok = state.result.detail[q];
+      j.textContent = ok ? '✓ 正确 +2' : '✗ 错误 · 正解 ' + ANS_KEY[q];
+      j.className = 'judge ' + (ok ? 'ok' : 'no');
+    } else {
+      j.textContent = ''; j.className = 'judge';
+    }
+  }
+  var sc = document.getElementById('scoreChip');
+  if(state.result){ sc.textContent = '得分 ' + state.result.score + ' / 10'; sc.style.display = 'inline-flex'; }
+  else { sc.textContent = '未判分'; sc.style.display = 'none'; }
+}
+function toggleNote(btn){
+  var id = btn.getAttribute('data-note');
+  var box = document.getElementById('nb-' + id);
+  var open = box.classList.toggle('show');
+  if(open){
+    var ta = box.querySelector('textarea');
+    ta.value = state.notes[id] || '';
+    ta.focus();
+  }
+}
+function noteInput(id, v){
+  if(v && v.trim()){ state.notes[id] = v; } else { delete state.notes[id]; }
+  refreshNoteBtn(id); saveState(); refreshStat();
+}
+function refreshNoteBtn(id){
+  var btns = document.querySelectorAll('.notebtn[data-note="' + id + '"]');
+  for(var i=0;i<btns.length;i++){
+    if(state.notes[id] && state.notes[id].trim()){ btns[i].classList.add('has'); }
+    else{ btns[i].classList.remove('has'); }
+  }
+}
+function refreshStat(){
+  var h = 0; for(var k in state.hl){ if(state.hl[k] === 1) h++; }
+  var m = 0; for(var k2 in state.marks){ m += (state.marks[k2] || []).length; }
+  var n = 0; for(var k3 in state.notes){ if(state.notes[k3] && state.notes[k3].trim()) n++; }
+  var a = 0; for(var i=41;i<=45;i++){ if(state.answers['q'+i]) a++; }
+  document.getElementById('stat').textContent = '黄句 ' + h + ' · 词组 ' + m + ' · 批注 ' + n + ' · 已答 ' + a + '/5';
+}
+function applyAll(){
+  for(var id in state.hl){ applyHl(id, state.hl[id] === 1); }
+  for(var mid in state.marks){ renderMarks(mid); }
+  for(var nid in state.notes){
+    refreshNoteBtn(nid);
+    var ta = document.querySelector('#nb-' + nid + ' textarea');
+    if(ta && ta.value !== state.notes[nid]) ta.value = state.notes[nid];
+  }
+  renderResult();
+  refreshStat();
+}
+var _dlgAction = null;
+function askClear(){
+  var h = 0; for(var k in state.hl){ if(state.hl[k] === 1) h++; }
+  var m = 0; for(var k2 in state.marks){ m += (state.marks[k2] || []).length; }
+  var n = 0; for(var k3 in state.notes){ if(state.notes[k3] && state.notes[k3].trim()) n++; }
+  var a = 0; for(var i=41;i<=45;i++){ if(state.answers['q'+i]) a++; }
+  if(!h && !m && !n && !a){ toast('现在是干净的，没什么可清空'); return; }
+  document.getElementById('dlgTitle').textContent = '清空本卷全部作答记录';
+  document.getElementById('dlgDesc').textContent = '将清空 ' + h + ' 个黄句、' + m + ' 处词组标记、' + n + ' 条批注、' + a + ' 个已选答案与判分结果，页面回到全新空白状态，且下次云同步会用空数据覆盖云端本卷进度。';
+  _dlgAction = function(){
+    state = { hl:{}, marks:{}, notes:{}, answers:{}, result:null, updatedAt:'' };
+    saveState(); applyAll();
+    var tas = document.querySelectorAll('.notebox textarea');
+    for(var i=0;i<tas.length;i++) tas[i].value = '';
+    var nbs = document.querySelectorAll('.notebtn');
+    for(var j=0;j<nbs.length;j++) nbs[j].classList.remove('has');
+    toast('已清空，全新开始');
+  };
+  document.getElementById('dlgmask').classList.add('show');
+  var chk = document.getElementById('dlgChk'), ok = document.getElementById('dlgOk');
+  chk.checked = false; ok.disabled = true;
+  ok.style.background = '#cbd5e1'; ok.style.borderColor = '#cbd5e1';
+  chk.onchange = function(){
+    ok.disabled = !chk.checked;
+    if(chk.checked){ ok.style.background = '#dc2626'; ok.style.borderColor = '#dc2626'; }
+    else{ ok.style.background = '#cbd5e1'; ok.style.borderColor = '#cbd5e1'; }
+  };
+}
+function closeDlg(){ document.getElementById('dlgmask').classList.remove('show'); _dlgAction = null; }
+function dlgConfirm(){ if(_dlgAction){ var f = _dlgAction; closeDlg(); f(); } }
+document.getElementById('dlgmask').addEventListener('click', function(e){ if(e.target === this) closeDlg(); });
+var SYNC_TOKEN_KEY = 'wb_sync_token_v1';
+var SYNC_FILE = 'progress.json';
+var SYNC_REPO = 'shuoshizaiyuan/kaoyan-annotate';
+var _syncTimer = null;
+function getSyncToken(){ try{ return localStorage.getItem(SYNC_TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function setSyncToken(t){ try{ localStorage.setItem(SYNC_TOKEN_KEY, t); }catch(e){} }
+function delSyncToken(){ try{ localStorage.removeItem(SYNC_TOKEN_KEY); }catch(e){} }
+function toggleSync(){
+  var p = document.getElementById('syncPanel');
+  p.classList.toggle('show');
+  refreshSyncSt();
+}
+function saveSync(){
+  var t = document.getElementById('syncTok').value.trim();
+  if(!t){ toast('请先粘贴同步秘钥'); return; }
+  setSyncToken(t);
+  document.getElementById('syncTok').value = '';
+  refreshSyncSt();
+  toast('✔ 秘钥已保存，正在连接云端…');
+  manualDownload(function(){ manualUpload(); });
+}
+function clearSync(){
+  delSyncToken(); refreshSyncSt(); toast('已清除秘钥，恢复纯本地模式');
+}
+function refreshSyncSt(){
+  var el = document.getElementById('syncSt');
+  if(getSyncToken()){ el.textContent = '✔ 当前已设置秘钥：划线/批注/作答后约 4 秒自动上传云端'; }
+  else{ el.textContent = '未设置秘钥，当前为纯本地模式（进度只存在本设备）'; }
+}
+function syncApi(method, payload, cb){
+  var token = getSyncToken();
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, 'https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE);
+  xhr.setRequestHeader('Accept', 'application/vnd.github+json');
+  if(token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+  if(payload) xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onload = function(){ cb && cb(xhr.status, xhr.responseText); };
+  xhr.onerror = function(){ cb && cb(0, ''); };
+  xhr.send(payload ? JSON.stringify(payload) : null);
+}
+function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+function uploadToCloud(done){
+  if(!getSyncToken()){ if(done) done(false); return; }
+  syncApi('GET', null, function(st, resp){
+    var sha = '', base = {};
+    if(st === 200){
+      try{
+        var parsed = JSON.parse(resp);
+        var remote = JSON.parse(b64d(parsed.content));
+        sha = parsed.sha;
+        if(remote && remote.pages) base = remote.pages;
+        else if(remote && remote.hl && remote.notes) base[PAGE_ID] = remote;
+      }catch(e){}
+    }
+    base[PAGE_ID] = state;
+    var body = { message: 'sync ' + PAGE_ID, content: b64e(JSON.stringify({ pages: base })), branch: 'main' };
+    if(sha) body.sha = sha;
+    syncApi('PUT', body, function(st2){
+      if(st2 === 200 || st2 === 201){ toast('☁ 已上传云端'); if(done) done(true); }
+      else if(st2 === 401 || st2 === 403){ toast('☁ 上传失败（' + st2 + '）：秘钥无效或无本仓库写权限'); if(done) done(false); }
+      else if(st2 === 409){ toast('☁ 云端有更新，请先「拉取云端」再上传'); if(done) done(false); }
+      else { toast('☁ 上传失败（' + st2 + '），稍后再试'); if(done) done(false); }
+    });
+  });
+}
+function downloadFromCloud(done){
+  if(!getSyncToken()){ toast('请先保存同步秘钥'); if(done) done(false); return; }
+  syncApi('GET', null, function(st, resp){
+    if(st === 404){ toast('云端还没有进度文件，直接做题即可（会自动创建）'); if(done) done(false); return; }
+    if(st !== 200){ toast('☁ 拉取失败（' + st + '）：请检查秘钥'); if(done) done(false); return; }
+    try{
+      var remote = JSON.parse(b64d(JSON.parse(resp).content));
+      var data = null;
+      if(remote && remote.pages && remote.pages[PAGE_ID]) data = remote.pages[PAGE_ID];
+      else if(remote && remote.hl && remote.notes) data = remote;
+      if(!data || !data.hl || !data.notes) throw 0;
+      if(!data.marks) data.marks = {};
+      if(!data.answers) data.answers = {};
+      if(!('result' in data)) data.result = null;
+      for(var k in data.hl){ if(data.hl[k] !== 1) delete data.hl[k]; }
+      state = data;
+      saveState(); applyAll();
+      toast('☁ 已拉取本卷云端进度');
+      if(done) done(true);
+    }catch(e){ toast('云端数据无法解析'); if(done) done(false); }
+  });
+}
+function manualUpload(){ if(!getSyncToken()){ toast('请先保存同步秘钥'); return; } uploadToCloud(null); }
+function manualDownload(cb){ downloadFromCloud(cb || null); }
+function markDirty(){
+  if(!getSyncToken()) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(function(){ uploadToCloud(null); }, 4000);
+}
+var _toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+loadState();
+document.addEventListener('DOMContentLoaded', function(){
+  applyAll();
+  refreshSyncSt();
+});
+</script>
+</body>
+</html>
