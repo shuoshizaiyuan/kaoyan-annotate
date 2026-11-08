@@ -288,13 +288,15 @@ function applyHl(id, v){
     els[i].className = 'sent' + (v ? ' ' + HL_CLASSES[v] : '');
   }
 }
-document.addEventListener('DOMContentLoaded', function(){
-  var sents = document.querySelectorAll('.sent');
-  for(var i=0;i<sents.length;i++){
-    (function(el){
-      el.addEventListener('click', function(){ cycleHl(el.getAttribute('data-s')); });
-    })(sents[i]);
+/* 事件委托：点击任何 .sent 都能划线（不依赖逐个绑定，最稳） */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  var el = null;
+  while(t && t !== document.body){
+    if(t.classList && t.classList.contains('sent')){ el = t; break; }
+    t = t.parentNode;
   }
+  if(el){ cycleHl(el.getAttribute('data-s')); }
 });
 
 /* ================= 批注 ================= */
