@@ -23,7 +23,16 @@ a.mod:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(29,78,216,.16
 .mod.off{background:#f8fafc;cursor:not-allowed}
 .mod.off .t,.mod.off .go{color:#94a3b8}
 .mod.off .ic{filter:grayscale(1);opacity:.55}
-.flow{background:#fff;border:1px solid #e5e9f2;border-radius:14px;padding:18px 22px;font-size:13.5px;color:#475569;margin-top:36px;line-height:2.0}
+.sync{background:#fff;border:2px solid #93c5fd;border-radius:14px;padding:18px 22px;font-size:13.5px;color:#475569;margin-top:36px;line-height:1.9}
+.sync h3{font-size:16px;color:#1d4ed8;margin-bottom:6px}
+.sync .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sync input{flex:1;min-width:220px;padding:10px 12px;border:1px solid #dbe1ec;border-radius:9px;font-size:14px;font-family:Consolas,monospace}
+.sync button{padding:10px 18px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.sync .b1{background:#1d4ed8;color:#fff}
+.sync .b2{background:#1e7f4f;color:#fff}
+.sync .b3{border:1px solid #dbe1ec;background:#fff;color:#475569}
+#syncSt{margin-top:10px;font-weight:600;color:#1d4ed8;min-height:20px}
+.flow{background:#fff;border:1px solid #e5e9f2;border-radius:14px;padding:18px 22px;font-size:13.5px;color:#475569;margin-top:20px;line-height:2.0}
 .flow b{color:#0f172a}
 footer{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:44px}
 </style>
@@ -40,7 +49,7 @@ footer{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:44px}
     <a class="mod" href="xintixing.html">
       <span class="ic">📑</span>
       <span class="t">新题型 Part B</span>
-      <span class="d">2013–2026 历年真题 · 观点匹配 / 排序 / 选句填空 / 小标题。现已开放：<b>2022（观点匹配）</b>，其余年份陆续制作中。</span>
+      <span class="d">2013–2026 共 <b>14 卷全部开放</b>：观点匹配 / 排序 / 选句填空 / 小标题，每卷均可划线、批注、作答判分。</span>
       <span class="go">进入年份选择 →</span>
     </a>
     <div class="mod off">
@@ -51,11 +60,126 @@ footer{text-align:center;color:#94a3b8;font-size:12.5px;margin-top:44px}
     </div>
   </div>
 
+  <div class="sync">
+    <h3>☁ 全站同步（最高层 · 一次管全部 14 卷）</h3>
+    粘贴一次同步秘钥（GitHub 密钥，<code>github_pat_</code> 开头，需对本仓库 Contents 读写权限）。<b>「全站上传」</b>把本机所有卷的划线/批注/作答合并推送云端；<b>「全站拉取」</b>把云端所有卷的进度一次拉回本机。各年份页内也有单卷自动同步（改动后约 4 秒上传），两者共用同一秘钥。
+    <div class="row">
+      <input id="gTok" type="text" placeholder="粘贴 github_pat_ 开头的同步秘钥">
+      <button class="b1" onclick="gSave()">保存秘钥</button>
+      <button class="b2" onclick="gUpload()">全站上传</button>
+      <button class="b2" onclick="gDownload()">全站拉取</button>
+      <button class="b3" onclick="gClear()">清除秘钥</button>
+    </div>
+    <div id="syncSt"></div>
+  </div>
+
   <div class="flow">
-    <b>做一张卷的完整流程：</b>进入年份页 → ① 读文章，<b>点击句子染黄</b>（该读句/主题句）→ ② <b>拖选关键词组</b>标绿（同义替换对应词）或标红（陷阱）→ ③ 每题、每个选项都可<b>写批注</b>记录思考 → ④ 在「我的答案」里选 A–G → ⑤ 点「交卷判分」看对错与得分 → 设置同步秘钥后，以上全部自动上传云端。
+    <b>做一张卷的完整流程：</b>进入年份页 → ① 读文章，<b>点击句子染黄</b>（该读句/主题句）→ ② <b>拖选关键词组</b>标绿（同义替换对应词）或标红（陷阱）→ ③ 每题、每个选项都可<b>写批注</b>记录思考 → ④ 在「我选」里点字母作答 → ⑤ 点「交卷判分」看对错与得分。
   </div>
 
   <footer>考研英语一 交互批注站 · 总门户 · 永久网址</footer>
 </div>
+<script>
+var PAGES = ['2013xt','2014xt','2015xt','2016xt','2017xt','2018xt','2019xt','2020xt','2021xt','2022pb','2023xt','2024xt','2025xt','2026xt'];
+var LS_PREFIX = 'kaoyan_annotate_';
+var LS_SUFFIX = '_v1';
+var SYNC_TOKEN_KEY = 'wb_sync_token_v1';
+var SYNC_FILE = 'progress.json';
+var SYNC_REPO = 'shuoshizaiyuan/kaoyan-annotate';
+
+function $(id){ return document.getElementById(id); }
+function getTok(){ try{ return localStorage.getItem(SYNC_TOKEN_KEY) || ''; }catch(e){ return ''; } }
+function st(msg){ $('syncSt').textContent = msg; }
+function refreshSt(){
+  if(getTok()){ st('✔ 已设置秘钥。单卷改动自动上传；此处可全站上传 / 全站拉取。'); }
+  else{ st('未设置秘钥，当前全站为纯本地模式。'); }
+}
+function gSave(){
+  var t = $('gTok').value.trim();
+  if(!t){ alert('请先粘贴同步秘钥'); return; }
+  try{ localStorage.setItem(SYNC_TOKEN_KEY, t); }catch(e){}
+  $('gTok').value = '';
+  refreshSt();
+  gDownload(true);
+}
+function gClear(){
+  try{ localStorage.removeItem(SYNC_TOKEN_KEY); }catch(e){}
+  refreshSt();
+}
+function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s){ return decodeURIComponent(escape(atob(s))); }
+function api(method, payload, cb){
+  var xhr = new XMLHttpRequest();
+  xhr.open(method, 'https://api.github.com/repos/' + SYNC_REPO + '/contents/' + SYNC_FILE);
+  xhr.setRequestHeader('Accept', 'application/vnd.github+json');
+  var t = getTok();
+  if(t) xhr.setRequestHeader('Authorization', 'Bearer ' + t);
+  if(payload) xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onload = function(){ cb(xhr.status, xhr.responseText); };
+  xhr.onerror = function(){ cb(0, ''); };
+  xhr.send(payload ? JSON.stringify(payload) : null);
+}
+function collectLocal(){
+  var out = {};
+  for(var i=0;i<PAGES.length;i++){
+    var key = LS_PREFIX + PAGES[i] + LS_SUFFIX;
+    try{
+      var raw = localStorage.getItem(key);
+      if(raw){
+        var s = JSON.parse(raw);
+        if(s && (s.hl || s.notes || s.answers)) out[PAGES[i]] = s;
+      }
+    }catch(e){}
+  }
+  return out;
+}
+function gUpload(){
+  if(!getTok()){ alert('请先保存同步秘钥'); return; }
+  st('⏳ 正在合并上传…');
+  api('GET', null, function(stt, resp){
+    var sha = '', base = {};
+    if(stt === 200){
+      try{
+        var parsed = JSON.parse(resp);
+        var remote = JSON.parse(b64d(parsed.content));
+        sha = parsed.sha;
+        if(remote && remote.pages) base = remote.pages;
+        else if(remote && remote.hl && remote.notes) base = {'2022pb': remote};
+      }catch(e){}
+    }
+    var local = collectLocal();
+    var n = 0;
+    for(var k in local){ base[k] = local[k]; n++; }
+    if(!n){ st('本机没有任何卷的进度，没什么可上传'); return; }
+    var body = { message: '全站上传：' + n + ' 卷', content: b64e(JSON.stringify({ pages: base })), branch: 'main' };
+    if(sha) body.sha = sha;
+    api('PUT', body, function(st2){
+      if(st2 === 200 || st2 === 201){ st('✔ 全站上传完成：本机 ' + n + ' 卷进度已合并推送云端'); }
+      else if(st2 === 401 || st2 === 403){ st('✗ 上传失败（' + st2 + '）：秘钥无效或无本仓库写权限'); }
+      else if(st2 === 409){ st('✗ 云端有更新，请先「全站拉取」再上传'); }
+      else{ st('✗ 上传失败（' + st2 + '），稍后再试'); }
+    });
+  });
+}
+function gDownload(silent){
+  if(!getTok()){ if(!silent) alert('请先保存同步秘钥'); return; }
+  st('⏳ 正在拉取云端…');
+  api('GET', null, function(stt, resp){
+    if(stt === 404){ st('云端还没有进度文件（首次使用，直接做题即可）'); return; }
+    if(stt !== 200){ st('✗ 拉取失败（' + stt + '）：请检查秘钥'); return; }
+    try{
+      var remote = JSON.parse(b64d(JSON.parse(resp).content));
+      var pages = (remote && remote.pages) ? remote.pages : (remote && remote.hl ? {'2022pb': remote} : null);
+      if(!pages){ st('云端数据无法解析'); return; }
+      var n = 0;
+      for(var k in pages){
+        try{ localStorage.setItem(LS_PREFIX + k + LS_SUFFIX, JSON.stringify(pages[k])); n++; }catch(e){}
+      }
+      st('✔ 全站拉取完成：云端 ' + n + ' 卷进度已写入本机（进入对应年份页即生效）');
+    }catch(e){ st('云端数据无法解析'); }
+  });
+}
+window.addEventListener('load', refreshSt);
+</script>
 </body>
 </html>
